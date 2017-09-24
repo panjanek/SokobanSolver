@@ -190,9 +190,9 @@ namespace PanJanek.SokobanSolver.Wpf
                         canvas.Children.Add(this.CreatePlayer(sx, sy, dx, dy, blueBrush));
                     }
 
-                    if (position.DeadlockMap[x, y])
+                    if (position.DeadlockMap[x, y] && position.Map[x,y] != Constants.WALL)
                     {
-                        canvas.Children.Add(this.CreateFilledRectangle(sx, sy, dx, dy, redBrush));
+                        canvas.Children.Add(this.CreateFilledRectangle(sx+5, sy+5, dx-10, dy-10, redBrush));
                     }
                 }
             }

@@ -395,8 +395,9 @@ namespace PanJanek.SokobanSolver.Sokoban
                         g.X = x;
                         g.Y = y;
                         goals.Add(g);
-                        this.DeadlockMap[x, y] = true;
                     }
+
+                    this.DeadlockMap[x, y] = true;
                 }
             }
 
@@ -436,14 +437,15 @@ namespace PanJanek.SokobanSolver.Sokoban
 
 
                 bool[,] visited = new bool[start.Width, start.Height];
+                PointXY[] stack = new PointXY[start.Width * start.Height];
                 Array.Clear(visited, 0, visited.Length);
-                Stack[0] = node.Player;
+                stack[0] = node.Player;
                 visited[node.Player.X, node.Player.Y] = true;
                 int stackTop = 0;
                 PointXY p;
                 while (stackTop >= 0)
                 {
-                    p = Stack[stackTop];
+                    p = stack[stackTop];
                     stackTop--;
 
                     //try pull right
@@ -519,8 +521,8 @@ namespace PanJanek.SokobanSolver.Sokoban
                     if (!visited[p.X - 1, p.Y] && (node.Map[p.X - 1, p.Y] == Constants.EMPTY || node.Map[p.X - 1, p.Y] == Constants.GOAL))
                     {
                         stackTop++;
-                        Stack[stackTop].X = p.X - 1;
-                        Stack[stackTop].Y = p.Y;
+                        stack[stackTop].X = p.X - 1;
+                        stack[stackTop].Y = p.Y;
                         visited[p.X - 1, p.Y] = true;
                     }
 
@@ -528,8 +530,8 @@ namespace PanJanek.SokobanSolver.Sokoban
                     if (!visited[p.X + 1, p.Y] && (node.Map[p.X + 1, p.Y] == Constants.EMPTY || node.Map[p.X + 1, p.Y] == Constants.GOAL))
                     {
                         stackTop++;
-                        Stack[stackTop].X = p.X + 1;
-                        Stack[stackTop].Y = p.Y;
+                        stack[stackTop].X = p.X + 1;
+                        stack[stackTop].Y = p.Y;
                         visited[p.X + 1, p.Y] = true;
                     }
 
@@ -537,8 +539,8 @@ namespace PanJanek.SokobanSolver.Sokoban
                     if (!visited[p.X, p.Y - 1] && (node.Map[p.X, p.Y - 1] == Constants.EMPTY || node.Map[p.X, p.Y - 1] == Constants.GOAL))
                     {
                         stackTop++;
-                        Stack[stackTop].X = p.X;
-                        Stack[stackTop].Y = p.Y - 1;
+                        stack[stackTop].X = p.X;
+                        stack[stackTop].Y = p.Y - 1;
                         visited[p.X, p.Y - 1] = true;
                     }
 
@@ -546,8 +548,8 @@ namespace PanJanek.SokobanSolver.Sokoban
                     if (!visited[p.X, p.Y + 1] && (node.Map[p.X, p.Y + 1] == Constants.EMPTY || node.Map[p.X, p.Y + 1] == Constants.GOAL))
                     {
                         stackTop++;
-                        Stack[stackTop].X = p.X;
-                        Stack[stackTop].Y = p.Y + 1;
+                        stack[stackTop].X = p.X;
+                        stack[stackTop].Y = p.Y + 1;
                         visited[p.X, p.Y + 1] = true;
                     }
                 }
