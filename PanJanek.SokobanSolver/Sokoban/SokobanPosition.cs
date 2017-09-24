@@ -22,6 +22,8 @@ namespace PanJanek.SokobanSolver.Sokoban
 
         public byte[,] Map;
 
+        public bool[,] DeadlockMap;
+
         public PointXY Player;
 
         public int StonesCount;
@@ -156,20 +158,6 @@ namespace PanJanek.SokobanSolver.Sokoban
                                 return int.MaxValue;
                             }
                         }
-
-
-
-
-
-                        /*
-                        if (this.Map[x, y] == Constants.STONE)
-                        {
-                            stonesNotOnGoal++;
-                        }
-                        */
-
-
-
                     }
                 }
 
@@ -181,6 +169,7 @@ namespace PanJanek.SokobanSolver.Sokoban
 
         public int DistanceTo(IGamePosition other)
         {
+            //prefer pushing the same stone in next move
             SokobanPosition position = (SokobanPosition)other;
             return ((Math.Abs(this.Player.X - position.Player.X) == 1 && (this.Player.Y == position.Player.Y)) ||
                     (Math.Abs(this.Player.Y - position.Player.Y) == 1 && (this.Player.X == position.Player.X))) ? 1 : 2;
@@ -188,6 +177,11 @@ namespace PanJanek.SokobanSolver.Sokoban
 
         public List<IGamePosition> GetSuccessors()
         {
+            if (this.DeadlockMap == null)
+            {
+                this.CreateDeadlockMap();
+            }
+
             List<IGamePosition> result = new List<IGamePosition>();
             Array.Clear(VisitedMap, 0, VisitedMap.Length);
             Stack[0] = this.Player;
@@ -282,7 +276,6 @@ namespace PanJanek.SokobanSolver.Sokoban
             {
                 //this.Binary = new byte[2 + this.Width * this.Height];
                 this.Binary = new byte[2 + this.Width * this.Height / 8 + 1];
-                int i = 0;
                 for (int x = 0; x < this.Width; x++)
                 {
                     for (int y = 0; y < this.Height; y++)
@@ -371,7 +364,7 @@ namespace PanJanek.SokobanSolver.Sokoban
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetBinaryBit(int x, int y, int bit)
+        private void SetBinaryBit(int x, int y, int bit)
         {
             int i = (y * this.Width + x);
             int idx = 2 + i / 8;
@@ -387,7 +380,184 @@ namespace PanJanek.SokobanSolver.Sokoban
                 this.Binary[idx] &= ((byte)~mask);
             }
         }
-        
+
+        private void CreateDeadlockMap()
+        {
+            this.DeadlockMap = new bool[this.Width, this.Height];
+            var goals = new List<PointXY>();
+            for (int x = 1; x < this.Width - 1; x++)
+            {
+                for (int y = 1; y < this.Height - 1; y++)
+                {
+                    if (this.Map[x, y] == Constants.GOAL || this.Map[x, y] == Constants.GOALSTONE)
+                    {
+                        PointXY g;
+                        g.X = x;
+                        g.Y = y;
+                        goals.Add(g);
+                        this.DeadlockMap[x, y] = true;
+                    }
+                }
+            }
+
+            var checkGoal = goals.First();
+
+            //prepare map with one stone
+            var start = new SokobanPosition() { Width = this.Width, Height = this.Height };
+            start.Map = new byte[this.Width, this.Height];
+            start.Player = this.Player;
+            for (int x = 0; x < this.Width; x++)
+            {
+                for (int y = 0; y < this.Height; y++)
+                {
+                    start.Map[x, y] = this.Map[x, y];
+                    if (start.Map[x,y] == Constants.STONE || start.Map[x,y] == Constants.GOAL || start.Map[x,y] == Constants.GOALSTONE)
+                    {
+                        start.Map[x, y] = Constants.EMPTY;
+                    }
+
+                    if (x == checkGoal.X && y == checkGoal.Y)
+                    {
+                        start.Map[x, y] = Constants.STONE;
+                        DeadlockMap[x, y] = false;
+                    }
+                }
+            }
+
+            //search pull posibilities
+            List<SokobanPosition> nodesToCheck = new List<SokobanPosition>();
+            nodesToCheck.Add(start);
+            HashSet<string> visitedNodes = new HashSet<string>();
+            while (nodesToCheck.Count > 0)
+            {
+                var node = nodesToCheck.ElementAt(0);
+                nodesToCheck.RemoveAt(0);
+                visitedNodes.Add(node.GetUniqueId());
+
+
+                bool[,] visited = new bool[start.Width, start.Height];
+                Array.Clear(visited, 0, visited.Length);
+                Stack[0] = node.Player;
+                visited[node.Player.X, node.Player.Y] = true;
+                int stackTop = 0;
+                PointXY p;
+                while (stackTop >= 0)
+                {
+                    p = Stack[stackTop];
+                    stackTop--;
+
+                    //try pull right
+                    if ((node.Map[p.X - 1, p.Y] == Constants.STONE) && (node.Map[p.X + 1, p.Y] == Constants.EMPTY))
+                    {
+                        var next = new SokobanPosition() { Width = this.Width, Height = this.Height };
+                        next.Player.X = p.X + 1;
+                        next.Player.Y = p.Y;
+                        next.Map = new byte[this.Width, this.Height];
+                        Array.Copy(node.Map, next.Map, node.Map.Length);
+                        next.Map[p.X - 1, p.Y] = Constants.EMPTY;
+                        next.Map[p.X, p.Y] = Constants.STONE;
+                        if (!visitedNodes.Contains(next.GetUniqueId()) && !nodesToCheck.Any(n=>n.GetUniqueId() == next.GetUniqueId()))
+                        {
+                            nodesToCheck.Add(next);
+                            this.DeadlockMap[p.X, p.Y] = false;
+                        }
+                    }
+
+                    //try pull left
+                    if ((node.Map[p.X + 1, p.Y] == Constants.STONE) && (node.Map[p.X - 1, p.Y] == Constants.EMPTY))
+                    {
+                        var next = new SokobanPosition() { Width = this.Width, Height = this.Height };
+                        next.Player.X = p.X - 1;
+                        next.Player.Y = p.Y;
+                        next.Map = new byte[this.Width, this.Height];
+                        Array.Copy(node.Map, next.Map, node.Map.Length);
+                        next.Map[p.X + 1, p.Y] = Constants.EMPTY;
+                        next.Map[p.X, p.Y] = Constants.STONE;
+                        if (!visitedNodes.Contains(next.GetUniqueId()) && !nodesToCheck.Any(n => n.GetUniqueId() == next.GetUniqueId()))
+                        {
+                            nodesToCheck.Add(next);
+                            this.DeadlockMap[p.X, p.Y] = false;
+                        }
+                    }
+
+                    //try pull down
+                    if ((node.Map[p.X, p.Y - 1] == Constants.STONE) && (node.Map[p.X, p.Y + 1] == Constants.EMPTY))
+                    {
+                        var next = new SokobanPosition() { Width = this.Width, Height = this.Height };
+                        next.Player.X = p.X;
+                        next.Player.Y = p.Y + 1;
+                        next.Map = new byte[this.Width, this.Height];
+                        Array.Copy(node.Map, next.Map, node.Map.Length);
+                        next.Map[p.X, p.Y - 1] = Constants.EMPTY;
+                        next.Map[p.X, p.Y] = Constants.STONE;
+                        if (!visitedNodes.Contains(next.GetUniqueId()) && !nodesToCheck.Any(n => n.GetUniqueId() == next.GetUniqueId()))
+                        {
+                            nodesToCheck.Add(next);
+                            this.DeadlockMap[p.X, p.Y] = false;
+                        }
+                    }
+
+                    //try pull up
+                    if ((node.Map[p.X, p.Y + 1] == Constants.STONE) && (node.Map[p.X, p.Y - 1] == Constants.EMPTY))
+                    {
+                        var next = new SokobanPosition() { Width = this.Width, Height = this.Height };
+                        next.Player.X = p.X;
+                        next.Player.Y = p.Y - 1;
+                        next.Map = new byte[this.Width, this.Height];
+                        Array.Copy(node.Map, next.Map, node.Map.Length);
+                        next.Map[p.X, p.Y + 1] = Constants.EMPTY;
+                        next.Map[p.X, p.Y] = Constants.STONE;
+                        if (!visitedNodes.Contains(next.GetUniqueId()) && !nodesToCheck.Any(n => n.GetUniqueId() == next.GetUniqueId()))
+                        {
+                            nodesToCheck.Add(next);
+                            this.DeadlockMap[p.X, p.Y] = false;
+                        }
+                    }
+
+
+                    //try walk left
+                    if (!visited[p.X - 1, p.Y] && (node.Map[p.X - 1, p.Y] == Constants.EMPTY || node.Map[p.X - 1, p.Y] == Constants.GOAL))
+                    {
+                        stackTop++;
+                        Stack[stackTop].X = p.X - 1;
+                        Stack[stackTop].Y = p.Y;
+                        visited[p.X - 1, p.Y] = true;
+                    }
+
+                    //try walk right
+                    if (!visited[p.X + 1, p.Y] && (node.Map[p.X + 1, p.Y] == Constants.EMPTY || node.Map[p.X + 1, p.Y] == Constants.GOAL))
+                    {
+                        stackTop++;
+                        Stack[stackTop].X = p.X + 1;
+                        Stack[stackTop].Y = p.Y;
+                        visited[p.X + 1, p.Y] = true;
+                    }
+
+                    //try walk up
+                    if (!visited[p.X, p.Y - 1] && (node.Map[p.X, p.Y - 1] == Constants.EMPTY || node.Map[p.X, p.Y - 1] == Constants.GOAL))
+                    {
+                        stackTop++;
+                        Stack[stackTop].X = p.X;
+                        Stack[stackTop].Y = p.Y - 1;
+                        visited[p.X, p.Y - 1] = true;
+                    }
+
+                    //try walk down
+                    if (!visited[p.X, p.Y + 1] && (node.Map[p.X, p.Y + 1] == Constants.EMPTY || node.Map[p.X, p.Y + 1] == Constants.GOAL))
+                    {
+                        stackTop++;
+                        Stack[stackTop].X = p.X;
+                        Stack[stackTop].Y = p.Y + 1;
+                        visited[p.X, p.Y + 1] = true;
+                    }
+                }
+
+
+            }
+
+            //this.Map = map;
+        }
+
         /*
         public string GetUniqueId()
         {
@@ -489,7 +659,7 @@ namespace PanJanek.SokobanSolver.Sokoban
             clone.StonesCount = this.StonesCount;
             clone.NormalizedPlayer.X = 0;
             clone.NormalizedPlayer.Y = 0;
-
+            clone.DeadlockMap = this.DeadlockMap;
             if (this.Binary != null)
             {
                 clone.Binary = new byte[this.Binary.Length];

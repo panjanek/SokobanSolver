@@ -78,7 +78,12 @@ namespace PanJanek.SokobanSolver.Wpf
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            var position = SokobanPosition.LoadFromFile(".\\..\\..\\..\\levels\\sokoban2.txt");
+            var position = SokobanPosition.LoadFromFile(".\\..\\..\\..\\levels\\sokoban1.txt");
+            position.GetSuccessors();
+            this.Draw(canvas, position);
+
+
+            /*
             var solver = new Solver<SokobanPosition>();
             this.solution = solver.AStar(position);
             string str = "";
@@ -100,7 +105,7 @@ namespace PanJanek.SokobanSolver.Wpf
             }
 
             textBox.Clear();
-            textBox.Text = str;
+            textBox.Text = str;*/
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
@@ -183,6 +188,11 @@ namespace PanJanek.SokobanSolver.Wpf
                     if (x == position.Player.X && y == position.Player.Y)
                     {
                         canvas.Children.Add(this.CreatePlayer(sx, sy, dx, dy, blueBrush));
+                    }
+
+                    if (position.DeadlockMap[x, y])
+                    {
+                        canvas.Children.Add(this.CreateFilledRectangle(sx, sy, dx, dy, redBrush));
                     }
                 }
             }
