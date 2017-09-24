@@ -37,6 +37,8 @@ namespace PanJanek.SokobanSolver.Wpf
 
         private static readonly SolidColorBrush blueBrush = new SolidColorBrush(Colors.Blue);
 
+        private static readonly SolidColorBrush transparentRedBrush = new SolidColorBrush(Color.FromArgb(32,255,0,0));
+
         private Solution<SokobanPosition> solution;
 
         private List<SokobanPosition> path;
@@ -79,11 +81,10 @@ namespace PanJanek.SokobanSolver.Wpf
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             var position = SokobanPosition.LoadFromFile(".\\..\\..\\..\\levels\\sokoban1.txt");
-            position.GetSuccessors();
-            this.Draw(canvas, position);
+            //position.GetSuccessors();
+            //this.Draw(canvas, position);
+            //return;
 
-
-            /*
             var solver = new Solver<SokobanPosition>();
             this.solution = solver.AStar(position);
             string str = "";
@@ -105,7 +106,7 @@ namespace PanJanek.SokobanSolver.Wpf
             }
 
             textBox.Clear();
-            textBox.Text = str;*/
+            textBox.Text = str;
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
@@ -190,9 +191,12 @@ namespace PanJanek.SokobanSolver.Wpf
                         canvas.Children.Add(this.CreatePlayer(sx, sy, dx, dy, blueBrush));
                     }
 
-                    if (position.DeadlockMap[x, y] && position.Map[x,y] != Constants.WALL)
+                    if (position.DeadlockMap != null)
                     {
-                        canvas.Children.Add(this.CreateFilledRectangle(sx+5, sy+5, dx-10, dy-10, redBrush));
+                        if (position.DeadlockMap[x, y] && position.Map[x, y] != Constants.WALL)
+                        {
+                            canvas.Children.Add(this.CreateFilledRectangle(sx + 1, sy + 1, dx - 1, dy - 1, transparentRedBrush));
+                        }
                     }
                 }
             }
