@@ -1,0 +1,15 @@
+﻿<Window x:Class="PanJanek.SokobanSolver.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="510" Width="600">
+    <Grid>
+        <Button Content="Solve" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="167" Click="Button_Click"/>
+        <Canvas Name="canvas" HorizontalAlignment="Left" Height="400" Margin="182,10,0,0" VerticalAlignment="Top" Width="400"/>
+        <Button Content="&lt;" HorizontalAlignment="Left" Margin="10,37,0,0" VerticalAlignment="Top" Width="26" Click="Button_Click_1"/>
+        <Button Content="&gt;" HorizontalAlignment="Left" Margin="152,35,0,0" VerticalAlignment="Top" Width="25" RenderTransformOrigin="0.16,0.5" Click="Button_Click_2"/>
+        <TextBox x:Name="textBox" IsReadOnly="True" HorizontalAlignment="Left" Height="372" Margin="10,62,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="167"/>
+        <Label x:Name="pushLabel" Content="" HorizontalAlignment="Left" Height="24" Margin="190,410,0,0" VerticalAlignment="Top" Width="69"/>
+        <Button Content="Play" HorizontalAlignment="Left" Margin="57,35,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.227,0.35" Click="Button_Click_3"/>
+
+    </Grid>
+</Window>
