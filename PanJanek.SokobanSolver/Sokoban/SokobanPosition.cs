@@ -16,6 +16,10 @@ namespace PanJanek.SokobanSolver.Sokoban
 
         private static bool[,] VisitedMap = new bool[Constants.InternalMapMaxWidth, Constants.InternalMapMaxHeight];
 
+        private static PointXY[] Stones = new PointXY[Constants.InteralStackMaxSize];
+
+        private static PointXY[] Goals = new PointXY[Constants.InteralStackMaxSize];
+
         public int Width;
 
         public int Height;
@@ -33,6 +37,10 @@ namespace PanJanek.SokobanSolver.Sokoban
         private byte[] Binary;
 
         private PointXY NormalizedPlayer;
+
+        private PointXY stoneMovedFrom;
+
+        private PointXY stoneMovedTo;
 
         private string CachedUniqueId;
 
@@ -89,9 +97,11 @@ namespace PanJanek.SokobanSolver.Sokoban
             if (!this.CachedHeuristics.HasValue)
             {
                 int stonesNotOnGoal = 0;
-                for (int x = 1; x < this.Width - 1; x++)
+                int s = 0;
+                int g = 0;
+                for (int x = 0; x < this.Width - 1; x++)
                 {
-                    for (int y = 1; y < this.Height - 1; y++)
+                    for (int y = 0; y < this.Height - 1; y++)
                     {
                         int d_stonesOnGoals = 0;
                         int d_stones = 0;
@@ -111,7 +121,7 @@ namespace PanJanek.SokobanSolver.Sokoban
                                  break;
                         }
 
-                        //deadlock detection
+                        //2x2 deadlock detection
                         if (d_stonesOnGoals==1 || d_stones==1 || d_walls==1)
                         {
                             switch (this.Map[x + 1, y])
@@ -158,10 +168,56 @@ namespace PanJanek.SokobanSolver.Sokoban
                                 return int.MaxValue;
                             }
                         }
+
+                        if (this.Map[x, y] == Constants.STONE || this.Map[x, y] == Constants.GOALSTONE)
+                        {
+                            Stones[s].X = x;
+                            Stones[s].Y = y;
+                            s++;
+                        }
+
+                        if (this.Map[x, y] == Constants.GOAL || this.Map[x, y] == Constants.GOALSTONE)
+                        {
+                            Goals[g].X = x;
+                            Goals[g].Y = y;
+                            g++;
+                        }
                     }
                 }
 
-                this.CachedHeuristics = stonesNotOnGoal * 100;
+                int distancesSum = 0;
+                for (s = 0; s < this.StonesCount; s++)
+                {
+                    for(g=0; g <this.StonesCount; g++)
+                    {
+                        int dx = Stones[s].X - Goals[g].X;
+                        int dy = Stones[s].Y - Goals[g].Y;
+                        
+                        if (dx < 0)
+                        {
+                            dx = dx * -1;
+                        }
+
+                        if (dy < 0)
+                        {
+                            dy = dy * -1;
+                        }
+
+                        distancesSum += dx + dy;
+                    }
+                }
+
+                if (stonesNotOnGoal == 0)
+                {
+                    this.CachedHeuristics = 0;
+                }
+                else
+                {
+                    this.CachedHeuristics = stonesNotOnGoal * 100;
+                        
+                    //this.CachedHeuristics = 3 * (distancesSum / (this.StonesCount * this.StonesCount) + 
+                    //                             stonesNotOnGoal * (this.StonesCount * this.StonesCount));
+                }
             }
 
             return this.CachedHeuristics.Value;
