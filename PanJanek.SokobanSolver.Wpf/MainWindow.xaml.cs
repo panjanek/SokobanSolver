@@ -78,7 +78,7 @@ namespace PanJanek.SokobanSolver.Wpf
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            var position = SokobanPosition.LoadFromFile("c:\\tmp\\sokoban\\sokoban2.txt");
+            var position = SokobanPosition.LoadFromFile(".\\..\\..\\..\\levels\\sokoban2.txt");
             var solver = new Solver<SokobanPosition>();
             this.solution = solver.AStar(position);
             string str = "";
