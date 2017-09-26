@@ -80,7 +80,7 @@ namespace PanJanek.SokobanSolver.Wpf
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            var position = SokobanPosition.LoadFromFile(".\\..\\..\\..\\levels\\sokoban1.txt");
+            var position = SokobanPosition.LoadFromFile(".\\..\\..\\..\\levels\\sokoban2.txt");
             //position.GetSuccessors();
             //this.Draw(canvas, position);
             //return;
