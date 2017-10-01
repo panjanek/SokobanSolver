@@ -252,37 +252,25 @@ namespace PanJanek.SokobanSolver.Sokoban
                 //try push left
                 if ((this.Map[p.X - 1, p.Y] == Constants.STONE || this.Map[p.X - 1, p.Y] == Constants.GOALSTONE) && (this.Map[p.X - 2, p.Y] == Constants.EMPTY || this.Map[p.X - 2, p.Y] == Constants.GOAL) && !this.DeadlockMap[p.X-2, p.Y])
                 {
-                    var next = this.Clone(p.X-1, p.Y, Direction.Left);
-                    next.Map[p.X - 1, p.Y] = this.Map[p.X - 1, p.Y] == Constants.STONE ? Constants.EMPTY : Constants.GOAL;
-                    next.Map[p.X - 2, p.Y] = this.Map[p.X - 2, p.Y] == Constants.EMPTY ? Constants.STONE : Constants.GOALSTONE;
-                    result.Add(next);
+                    result.Add(this.ClonePush(p, Direction.Left));
                 }
 
                 //try push right
                 if ((this.Map[p.X + 1, p.Y] == Constants.STONE || this.Map[p.X + 1, p.Y] == Constants.GOALSTONE) && (this.Map[p.X + 2, p.Y] == Constants.EMPTY || this.Map[p.X + 2, p.Y] == Constants.GOAL) && !this.DeadlockMap[p.X + 2, p.Y])
                 {
-                    var next = this.Clone(p.X + 1, p.Y, Direction.Right);
-                    next.Map[p.X + 1, p.Y] = this.Map[p.X + 1, p.Y] == Constants.STONE ? Constants.EMPTY : Constants.GOAL;
-                    next.Map[p.X + 2, p.Y] = this.Map[p.X + 2, p.Y] == Constants.EMPTY ? Constants.STONE : Constants.GOALSTONE;
-                    result.Add(next);
+                    result.Add(this.ClonePush(p, Direction.Right));
                 }
 
                 //try push up
                 if ((this.Map[p.X, p.Y - 1] == Constants.STONE || this.Map[p.X, p.Y - 1] == Constants.GOALSTONE) && (this.Map[p.X, p.Y - 2] == Constants.EMPTY || this.Map[p.X, p.Y - 2] == Constants.GOAL) && !this.DeadlockMap[p.X, p.Y - 2])
                 {
-                    var next = this.Clone(p.X, p.Y - 1, Direction.Up);
-                    next.Map[p.X, p.Y - 1] = this.Map[p.X, p.Y - 1] == Constants.STONE ? Constants.EMPTY : Constants.GOAL;
-                    next.Map[p.X, p.Y - 2] = this.Map[p.X, p.Y - 2] == Constants.EMPTY ? Constants.STONE : Constants.GOALSTONE;
-                    result.Add(next);
+                    result.Add(this.ClonePush(p, Direction.Up));
                 }
 
                 //try push down
                 if ((this.Map[p.X, p.Y + 1] == Constants.STONE || this.Map[p.X, p.Y + 1] == Constants.GOALSTONE) && (this.Map[p.X, p.Y + 2] == Constants.EMPTY || this.Map[p.X, p.Y + 2] == Constants.GOAL) && !this.DeadlockMap[p.X, p.Y + 2])
                 {
-                    var next = this.Clone(p.X, p.Y + 1, Direction.Down);
-                    next.Map[p.X, p.Y + 1] = this.Map[p.X, p.Y + 1] == Constants.STONE ? Constants.EMPTY : Constants.GOAL;
-                    next.Map[p.X, p.Y + 2] = this.Map[p.X, p.Y + 2] == Constants.EMPTY ? Constants.STONE : Constants.GOALSTONE;
-                    result.Add(next);
+                    result.Add(this.ClonePush(p, Direction.Down));
                 }
 
                 //try walk left
@@ -775,7 +763,7 @@ namespace PanJanek.SokobanSolver.Sokoban
         }*/
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public SokobanPosition Clone(int px, int py, Direction direction)
+        public SokobanPosition Clone()
         {
             var clone = new SokobanPosition();
             clone.Parent = this;
@@ -783,35 +771,77 @@ namespace PanJanek.SokobanSolver.Sokoban
             clone.Height = this.Height;
             clone.Map = new byte[this.Width, this.Height];
             Array.Copy(this.Map, clone.Map, this.Map.Length);
-            clone.Player.X = px;
-            clone.Player.Y = py;
+            clone.Player = this.Player;
             clone.StonesCount = this.StonesCount;
-            clone.NormalizedPlayer.X = 0;
-            clone.NormalizedPlayer.Y = 0;
+            clone.NormalizedPlayer = this.NormalizedPlayer;
             clone.DeadlockMap = this.DeadlockMap;
             if (this.Binary != null)
             {
                 clone.Binary = new byte[this.Binary.Length];
                 Array.Copy(this.Binary, clone.Binary, this.Binary.Length);
+            }
+
+            return clone;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public SokobanPosition ClonePush(PointXY p, Direction direction)
+        {
+            var clone = this.Clone();
+            switch (direction)
+            {
+                case Direction.Left:
+                    clone.Player.X = p.X - 1;
+                    clone.Player.Y = p.Y;
+                    clone.Map[p.X - 1, p.Y] = this.Map[p.X - 1, p.Y] == Constants.STONE ? Constants.EMPTY : Constants.GOAL;
+                    clone.Map[p.X - 2, p.Y] = this.Map[p.X - 2, p.Y] == Constants.EMPTY ? Constants.STONE : Constants.GOALSTONE;
+                    break;
+                case Direction.Right:
+                    clone.Player.X = p.X + 1;
+                    clone.Player.Y = p.Y;
+                    clone.Map[p.X + 1, p.Y] = this.Map[p.X + 1, p.Y] == Constants.STONE ? Constants.EMPTY : Constants.GOAL;
+                    clone.Map[p.X + 2, p.Y] = this.Map[p.X + 2, p.Y] == Constants.EMPTY ? Constants.STONE : Constants.GOALSTONE;
+                    break;
+                case Direction.Up:
+                    clone.Player.X = p.X;
+                    clone.Player.Y = p.Y - 1;
+                    clone.Map[p.X, p.Y - 1] = this.Map[p.X, p.Y - 1] == Constants.STONE ? Constants.EMPTY : Constants.GOAL;
+                    clone.Map[p.X, p.Y - 2] = this.Map[p.X, p.Y - 2] == Constants.EMPTY ? Constants.STONE : Constants.GOALSTONE;
+                    break;
+                case Direction.Down:
+                    clone.Player.X = p.X;
+                    clone.Player.Y = p.Y + 1;
+                    clone.Map[p.X, p.Y + 1] = this.Map[p.X, p.Y + 1] == Constants.STONE ? Constants.EMPTY : Constants.GOAL;
+                    clone.Map[p.X, p.Y + 2] = this.Map[p.X, p.Y + 2] == Constants.EMPTY ? Constants.STONE : Constants.GOALSTONE;
+                    break;
+            }
+
+            clone.NormalizedPlayer.X = 0;
+            clone.NormalizedPlayer.Y = 0;
+            if (this.Binary != null)
+            {
                 //clone.Binary[2 + py * this.Width + px] = 0;
-                clone.SetBinaryBit(px, py, 0);
                 switch (direction)
                 {
                     case Direction.Left:
                         //clone.Binary[2 + py * this.Width + px - 1] = 1;
-                        clone.SetBinaryBit(px - 1, py, 1);
+                        clone.SetBinaryBit(p.X - 1, p.Y, 0);
+                        clone.SetBinaryBit(p.X - 2, p.Y, 1);
                         break;
                     case Direction.Right:
                         //clone.Binary[2 + py * this.Width + px + 1] = 1;
-                        clone.SetBinaryBit(px + 1, py, 1);
+                        clone.SetBinaryBit(p.X + 1, p.Y, 0);
+                        clone.SetBinaryBit(p.X + 2, p.Y, 1);
                         break;
                     case Direction.Up:
                         //clone.Binary[2 + (py - 1) * this.Width + px] = 1;
-                        clone.SetBinaryBit(px, py - 1, 1);
+                        clone.SetBinaryBit(p.X, p.Y - 1, 0);
+                        clone.SetBinaryBit(p.X, p.Y - 2, 1);
                         break;
                     case Direction.Down:
                         //clone.Binary[2 + (py + 1) * this.Width + px] = 1;
-                        clone.SetBinaryBit(px, py + 1, 1);
+                        clone.SetBinaryBit(p.X, p.Y + 1, 0);
+                        clone.SetBinaryBit(p.X, p.Y + 2, 1);
                         break;
                 }
             }

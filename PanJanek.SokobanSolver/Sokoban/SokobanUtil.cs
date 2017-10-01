@@ -36,9 +36,7 @@ namespace PanJanek.SokobanSolver.Sokoban
                     //try push left
                     if ((start.Map[p.X - 1, p.Y] == Constants.STONE || start.Map[p.X - 1, p.Y] == Constants.GOALSTONE) && (start.Map[p.X - 2, p.Y] == Constants.EMPTY || start.Map[p.X - 2, p.Y] == Constants.GOAL))
                     {
-                        var next = start.Clone(p.X - 1, p.Y, Direction.Left);
-                        next.Map[p.X - 1, p.Y] = start.Map[p.X - 1, p.Y] == Constants.STONE ? Constants.EMPTY : Constants.GOAL;
-                        next.Map[p.X - 2, p.Y] = start.Map[p.X - 2, p.Y] == Constants.EMPTY ? Constants.STONE : Constants.GOALSTONE;
+                        var next = start.ClonePush(p, Direction.Left);
                         if (next.GetUniqueId() == stop.GetUniqueId())
                         {
                             found = next;
@@ -50,9 +48,7 @@ namespace PanJanek.SokobanSolver.Sokoban
                     //try push right
                     if ((start.Map[p.X + 1, p.Y] == Constants.STONE || start.Map[p.X + 1, p.Y] == Constants.GOALSTONE) && (start.Map[p.X + 2, p.Y] == Constants.EMPTY || start.Map[p.X + 2, p.Y] == Constants.GOAL))
                     {
-                        var next = start.Clone(p.X + 1, p.Y, Direction.Right);
-                        next.Map[p.X + 1, p.Y] = start.Map[p.X + 1, p.Y] == Constants.STONE ? Constants.EMPTY : Constants.GOAL;
-                        next.Map[p.X + 2, p.Y] = start.Map[p.X + 2, p.Y] == Constants.EMPTY ? Constants.STONE : Constants.GOALSTONE;
+                        var next = start.ClonePush(p, Direction.Right);
                         if (next.GetUniqueId() == stop.GetUniqueId())
                         {
                             found = next;
@@ -64,9 +60,7 @@ namespace PanJanek.SokobanSolver.Sokoban
                     //try push up
                     if ((start.Map[p.X, p.Y - 1] == Constants.STONE || start.Map[p.X, p.Y - 1] == Constants.GOALSTONE) && (start.Map[p.X, p.Y - 2] == Constants.EMPTY || start.Map[p.X, p.Y - 2] == Constants.GOAL))
                     {
-                        var next = start.Clone(p.X, p.Y - 1, Direction.Up);
-                        next.Map[p.X, p.Y - 1] = start.Map[p.X, p.Y - 1] == Constants.STONE ? Constants.EMPTY : Constants.GOAL;
-                        next.Map[p.X, p.Y - 2] = start.Map[p.X, p.Y - 2] == Constants.EMPTY ? Constants.STONE : Constants.GOALSTONE;
+                        var next = start.ClonePush(p, Direction.Up);
                         if (next.GetUniqueId() == stop.GetUniqueId())
                         {
                             found = next;
@@ -78,9 +72,7 @@ namespace PanJanek.SokobanSolver.Sokoban
                     //try push down
                     if ((start.Map[p.X, p.Y + 1] == Constants.STONE || start.Map[p.X, p.Y + 1] == Constants.GOALSTONE) && (start.Map[p.X, p.Y + 2] == Constants.EMPTY || start.Map[p.X, p.Y + 2] == Constants.GOAL))
                     {
-                        var next = start.Clone(p.X, p.Y + 1, Direction.Down);
-                        next.Map[p.X, p.Y + 1] = start.Map[p.X, p.Y + 1] == Constants.STONE ? Constants.EMPTY : Constants.GOAL;
-                        next.Map[p.X, p.Y + 2] = start.Map[p.X, p.Y + 2] == Constants.EMPTY ? Constants.STONE : Constants.GOALSTONE;
+                        var next = start.ClonePush(p, Direction.Down);
                         if (next.GetUniqueId() == stop.GetUniqueId())
                         {
                             found = next;
@@ -145,6 +137,7 @@ namespace PanJanek.SokobanSolver.Sokoban
                         pos.Player.X = t.X;
                         pos.Player.Y = t.Y;
                         pos.StonesCount = start.StonesCount;
+                        pos.DeadlockMap = start.DeadlockMap;
                         if (!(t.X == stop.Player.X && t.Y == stop.Player.Y))
                         {
                             intermediate.Add(pos);
