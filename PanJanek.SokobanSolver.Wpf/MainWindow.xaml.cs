@@ -25,6 +25,8 @@ namespace PanJanek.SokobanSolver.Wpf
     /// </summary>
     public partial class MainWindow : Window
     {
+        private const string defaultLevel = ".\\..\\..\\..\\levels\\sokoban2.txt";
+
         private static readonly SolidColorBrush whiteBrush = new SolidColorBrush(Colors.White);
 
         private static readonly SolidColorBrush blackBrush = new SolidColorBrush(Colors.Black);
@@ -78,9 +80,17 @@ namespace PanJanek.SokobanSolver.Wpf
                        }));
         }
 
+        private void Window_Initialized(object sender, EventArgs e)
+        {
+            var position = SokobanPosition.LoadFromFile(defaultLevel);
+            position.GetSuccessors();
+            this.Draw(canvas, position);
+
+        }
+
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            var position = SokobanPosition.LoadFromFile(".\\..\\..\\..\\levels\\sokoban2.txt");
+            var position = SokobanPosition.LoadFromFile(defaultLevel);
             //position.GetSuccessors();
             //this.Draw(canvas, position);
             //return;

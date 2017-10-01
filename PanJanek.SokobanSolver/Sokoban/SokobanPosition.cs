@@ -213,7 +213,7 @@ namespace PanJanek.SokobanSolver.Sokoban
                 }
                 else
                 {
-                    this.CachedHeuristics = stonesNotOnGoal * 100;
+                    this.CachedHeuristics = stonesNotOnGoal * 1000;
                         
                     //this.CachedHeuristics = 3 * (distancesSum / (this.StonesCount * this.StonesCount) + 
                     //                             stonesNotOnGoal * (this.StonesCount * this.StonesCount));
@@ -227,8 +227,9 @@ namespace PanJanek.SokobanSolver.Sokoban
         {
             //prefer pushing the same stone in next move
             SokobanPosition position = (SokobanPosition)other;
-            return ((Math.Abs(this.Player.X - position.Player.X) == 1 && (this.Player.Y == position.Player.Y)) ||
-                    (Math.Abs(this.Player.Y - position.Player.Y) == 1 && (this.Player.X == position.Player.X))) ? 1 : 2;
+            return (this.stoneMovedTo.X == position.stoneMovedFrom.X && this.stoneMovedTo.Y == position.stoneMovedFrom.Y) ? 1 : 10;
+            //return ((Math.Abs(this.Player.X - position.Player.X) == 1 && (this.Player.Y == position.Player.Y)) ||
+            //        (Math.Abs(this.Player.Y - position.Player.Y) == 1 && (this.Player.X == position.Player.X))) ? 1 : 2;
         }
 
         public List<IGamePosition> GetSuccessors()
@@ -771,24 +772,40 @@ namespace PanJanek.SokobanSolver.Sokoban
                     clone.Player.Y = p.Y;
                     clone.Map[p.X - 1, p.Y] = this.Map[p.X - 1, p.Y] == Constants.STONE ? Constants.EMPTY : Constants.GOAL;
                     clone.Map[p.X - 2, p.Y] = this.Map[p.X - 2, p.Y] == Constants.EMPTY ? Constants.STONE : Constants.GOALSTONE;
+                    clone.stoneMovedFrom.X = p.X - 1;
+                    clone.stoneMovedFrom.Y = p.Y;
+                    clone.stoneMovedTo.X = p.X - 2;
+                    clone.stoneMovedTo.Y = p.Y;
                     break;
                 case Direction.Right:
                     clone.Player.X = p.X + 1;
                     clone.Player.Y = p.Y;
                     clone.Map[p.X + 1, p.Y] = this.Map[p.X + 1, p.Y] == Constants.STONE ? Constants.EMPTY : Constants.GOAL;
                     clone.Map[p.X + 2, p.Y] = this.Map[p.X + 2, p.Y] == Constants.EMPTY ? Constants.STONE : Constants.GOALSTONE;
+                    clone.stoneMovedFrom.X = p.X + 1;
+                    clone.stoneMovedFrom.Y = p.Y;
+                    clone.stoneMovedTo.X = p.X + 2;
+                    clone.stoneMovedTo.Y = p.Y;
                     break;
                 case Direction.Up:
                     clone.Player.X = p.X;
                     clone.Player.Y = p.Y - 1;
                     clone.Map[p.X, p.Y - 1] = this.Map[p.X, p.Y - 1] == Constants.STONE ? Constants.EMPTY : Constants.GOAL;
                     clone.Map[p.X, p.Y - 2] = this.Map[p.X, p.Y - 2] == Constants.EMPTY ? Constants.STONE : Constants.GOALSTONE;
+                    clone.stoneMovedFrom.X = p.X;
+                    clone.stoneMovedFrom.Y = p.Y - 1;
+                    clone.stoneMovedTo.X = p.X;
+                    clone.stoneMovedTo.Y = p.Y - 2;
                     break;
                 case Direction.Down:
                     clone.Player.X = p.X;
                     clone.Player.Y = p.Y + 1;
                     clone.Map[p.X, p.Y + 1] = this.Map[p.X, p.Y + 1] == Constants.STONE ? Constants.EMPTY : Constants.GOAL;
                     clone.Map[p.X, p.Y + 2] = this.Map[p.X, p.Y + 2] == Constants.EMPTY ? Constants.STONE : Constants.GOALSTONE;
+                    clone.stoneMovedFrom.X = p.X;
+                    clone.stoneMovedFrom.Y = p.Y + 1;
+                    clone.stoneMovedTo.X = p.X;
+                    clone.stoneMovedTo.Y = p.Y + 2;
                     break;
             }
 
@@ -836,24 +853,40 @@ namespace PanJanek.SokobanSolver.Sokoban
                     clone.Player.Y = p.Y;
                     clone.Map[p.X + 1, p.Y] = this.Map[p.X + 1, p.Y] == Constants.STONE ? Constants.EMPTY : Constants.GOAL;
                     clone.Map[p.X, p.Y] = this.Map[p.X, p.Y] == Constants.EMPTY ? Constants.STONE : Constants.GOALSTONE;
+                    clone.stoneMovedFrom.X = p.X + 1;
+                    clone.stoneMovedFrom.Y = p.Y;
+                    clone.stoneMovedTo.X = p.X;
+                    clone.stoneMovedTo.Y = p.Y;
                     break;
                 case Direction.Right:
                     clone.Player.X = p.X + 1;
                     clone.Player.Y = p.Y;
                     clone.Map[p.X - 1, p.Y] = this.Map[p.X - 1, p.Y] == Constants.STONE ? Constants.EMPTY : Constants.GOAL;
                     clone.Map[p.X, p.Y] = this.Map[p.X, p.Y] == Constants.EMPTY ? Constants.STONE : Constants.GOALSTONE;
+                    clone.stoneMovedFrom.X = p.X - 1;
+                    clone.stoneMovedFrom.Y = p.Y;
+                    clone.stoneMovedTo.X = p.X;
+                    clone.stoneMovedTo.Y = p.Y;
                     break;
                 case Direction.Up:
                     clone.Player.X = p.X;
                     clone.Player.Y = p.Y - 1;
                     clone.Map[p.X, p.Y + 1] = this.Map[p.X, p.Y + 1] == Constants.STONE ? Constants.EMPTY : Constants.GOAL;
                     clone.Map[p.X, p.Y] = this.Map[p.X, p.Y] == Constants.EMPTY ? Constants.STONE : Constants.GOALSTONE;
+                    clone.stoneMovedFrom.X = p.X;
+                    clone.stoneMovedFrom.Y = p.Y + 1;
+                    clone.stoneMovedTo.X = p.X;
+                    clone.stoneMovedTo.Y = p.Y;
                     break;
                 case Direction.Down:
                     clone.Player.X = p.X;
                     clone.Player.Y = p.Y + 1;
                     clone.Map[p.X, p.Y - 1] = this.Map[p.X, p.Y - 1] == Constants.STONE ? Constants.EMPTY : Constants.GOAL;
                     clone.Map[p.X, p.Y] = this.Map[p.X, p.Y] == Constants.EMPTY ? Constants.STONE : Constants.GOALSTONE;
+                    clone.stoneMovedFrom.X = p.X;
+                    clone.stoneMovedFrom.Y = p.Y - 1;
+                    clone.stoneMovedTo.X = p.X;
+                    clone.stoneMovedTo.Y = p.Y;
                     break;
             }
 
