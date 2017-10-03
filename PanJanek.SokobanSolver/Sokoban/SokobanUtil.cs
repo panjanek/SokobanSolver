@@ -129,15 +129,9 @@ namespace PanJanek.SokobanSolver.Sokoban
                     List<SokobanPosition> intermediate = new List<SokobanPosition>();
                     while (!(t.X == start.Player.X && t.Y == start.Player.Y))
                     {
-                        SokobanPosition pos = new SokobanPosition();
-                        pos.Height = start.Height;
-                        pos.Width = start.Width;
-                        pos.Map = start.Map;
-                        pos.Parent = start.Parent;
+                        SokobanPosition pos = start.Clone();
                         pos.Player.X = t.X;
                         pos.Player.Y = t.Y;
-                        pos.StonesCount = start.StonesCount;
-                        pos.DeadlockMap = start.DeadlockMap;
                         if (!(t.X == stop.Player.X && t.Y == stop.Player.Y))
                         {
                             intermediate.Add(pos);

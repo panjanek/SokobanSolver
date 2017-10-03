@@ -16,9 +16,11 @@ namespace PanJanek.SokobanSolver.Sokoban
 
         private static bool[,] VisitedMap = new bool[Constants.InternalMapMaxWidth, Constants.InternalMapMaxHeight];
 
-        private static PointXY[] Stones = new PointXY[Constants.InteralStackMaxSize];
+        public byte[,] StonesMap;
 
-        private static PointXY[] Goals = new PointXY[Constants.InteralStackMaxSize];
+        public PointXY[] Stones;
+
+        public PointXY[] Goals;
 
         public int Width;
 
@@ -29,8 +31,6 @@ namespace PanJanek.SokobanSolver.Sokoban
         public bool[,] DeadlockMap;
 
         public PointXY Player;
-
-        public int StonesCount;
 
         public IGamePosition Parent { get; set; }
 
@@ -53,14 +53,20 @@ namespace PanJanek.SokobanSolver.Sokoban
             position.Width = lines.Max(l => l.Length);
             position.Height = lines.Length;
             position.Map = new byte[position.Width, position.Height];
-            position.StonesCount = 0;
+            position.StonesMap = new byte[position.Width, position.Height];
             position.NormalizedPlayer.X = 0;
             position.NormalizedPlayer.Y = 0;
+            List<PointXY> stones = new List<PointXY>();
+            List<PointXY> goals = new List<PointXY>();
             for(int y = 0; y<position.Height; y++)
             {
                 string line = lines[y];
                 for (int x = 0; x < line.Length; x++)
                 {
+                    PointXY p;
+                    p.X = x;
+                    p.Y = y;
+                    position.StonesMap[x,y] = 0;
                     switch (line[x])
                     {
                         case '#':
@@ -68,14 +74,18 @@ namespace PanJanek.SokobanSolver.Sokoban
                             break;
                         case '$':
                             position.Map[x, y] = Constants.STONE;
-                            position.StonesCount++;
+                            stones.Add(p);
+                            position.StonesMap[x, y] = (byte)stones.Count;
                             break;
                         case '.':
                             position.Map[x, y] = Constants.GOAL;
+                            goals.Add(p);
                             break;
                         case '*':
                             position.Map[x, y] = Constants.GOALSTONE;
-                            position.StonesCount++;
+                            stones.Add(p);
+                            goals.Add(p);
+                            position.StonesMap[x, y] = (byte)stones.Count;
                             break;
                         case '@':
                             position.Player.X = x;
@@ -86,9 +96,15 @@ namespace PanJanek.SokobanSolver.Sokoban
                             break;
                     }
                 }
-
             }
 
+            if (stones.Count != goals.Count)
+            {
+                throw new Exception("Number of stones is not equal to numer of goals!"); 
+            }
+
+            position.Goals = goals.ToArray();
+            position.Stones = stones.ToArray();
             return position;
         }
 
@@ -97,8 +113,6 @@ namespace PanJanek.SokobanSolver.Sokoban
             if (!this.CachedHeuristics.HasValue)
             {
                 int stonesNotOnGoal = 0;
-                int s = 0;
-                int g = 0;
                 for (int x = 0; x < this.Width - 1; x++)
                 {
                     for (int y = 0; y < this.Height - 1; y++)
@@ -168,30 +182,16 @@ namespace PanJanek.SokobanSolver.Sokoban
                                 return int.MaxValue;
                             }
                         }
-
-                        if (this.Map[x, y] == Constants.STONE || this.Map[x, y] == Constants.GOALSTONE)
-                        {
-                            Stones[s].X = x;
-                            Stones[s].Y = y;
-                            s++;
-                        }
-
-                        if (this.Map[x, y] == Constants.GOAL || this.Map[x, y] == Constants.GOALSTONE)
-                        {
-                            Goals[g].X = x;
-                            Goals[g].Y = y;
-                            g++;
-                        }
                     }
                 }
 
                 int distancesSum = 0;
-                for (s = 0; s < this.StonesCount; s++)
+                for (int s = 0; s < this.Stones.Length; s++)
                 {
-                    for(g=0; g <this.StonesCount; g++)
+                    for (int g = 0; g < this.Stones.Length; g++)
                     {
-                        int dx = Stones[s].X - Goals[g].X;
-                        int dy = Stones[s].Y - Goals[g].Y;
+                        int dx = this.Stones[s].X - this.Goals[g].X;
+                        int dy = this.Stones[s].Y - this.Goals[g].Y;
                         
                         if (dx < 0)
                         {
@@ -433,9 +433,12 @@ namespace PanJanek.SokobanSolver.Sokoban
             PointXY[] stack = new PointXY[this.Width * this.Height];
             int stackTop = 0;
             PointXY p;
-            var emtpy = new SokobanPosition() { Width = this.Width, Height = this.Height };
-            emtpy.Map = new byte[this.Width, this.Height];
-            emtpy.Player = this.Player;
+            var empty = new SokobanPosition() { Width = this.Width, Height = this.Height };
+            empty.Map = new byte[this.Width, this.Height];
+            empty.Stones = new PointXY[0];
+            empty.Goals = new PointXY[0];
+            empty.StonesMap = new byte[this.Width, this.Height];
+            empty.Player = this.Player;
 
             // create list of goals
             var goals = new List<PointXY>();
@@ -454,11 +457,11 @@ namespace PanJanek.SokobanSolver.Sokoban
                     this.DeadlockMap[x, y] = true;
                     if (this.Map[x,y] == Constants.WALL)
                     {
-                        emtpy.Map[x, y] = Constants.WALL;
+                        empty.Map[x, y] = Constants.WALL;
                     }
                     else
                     {
-                        emtpy.Map[x, y] = Constants.EMPTY;
+                        empty.Map[x, y] = Constants.EMPTY;
                     }
 
                 }
@@ -466,10 +469,15 @@ namespace PanJanek.SokobanSolver.Sokoban
 
             foreach (var checkGoal in goals)
             {
-
                 //prepare map with one stone
                 var start = new SokobanPosition() { Width = this.Width, Height = this.Height };
                 start.Map = new byte[this.Width, this.Height];
+                start.StonesMap = new byte[this.Width, this.Height];
+                start.Stones = new PointXY[1];
+                start.Goals = new PointXY[1];
+                start.Goals[0] = checkGoal;
+                start.Stones[0] = checkGoal;
+                start.StonesMap[checkGoal.X, checkGoal.Y] = 1;
                 start.Player = this.Player;
                 for (int x = 0; x < this.Width; x++)
                 {
@@ -595,8 +603,8 @@ namespace PanJanek.SokobanSolver.Sokoban
 
             // remove deadlocks outside reachable area
             Array.Clear(visited, 0, visited.Length);
-            stack[0] = emtpy.Player;
-            visited[emtpy.Player.X, emtpy.Player.Y] = true;
+            stack[0] = empty.Player;
+            visited[empty.Player.X, empty.Player.Y] = true;
             stackTop = 0;
             while (stackTop >= 0)
             {
@@ -604,7 +612,7 @@ namespace PanJanek.SokobanSolver.Sokoban
                 stackTop--;
 
                 //try walk left
-                if (!visited[p.X - 1, p.Y] && (emtpy.Map[p.X - 1, p.Y] == Constants.EMPTY || emtpy.Map[p.X - 1, p.Y] == Constants.GOAL))
+                if (!visited[p.X - 1, p.Y] && (empty.Map[p.X - 1, p.Y] == Constants.EMPTY || empty.Map[p.X - 1, p.Y] == Constants.GOAL))
                 {
                     stackTop++;
                     stack[stackTop].X = p.X - 1;
@@ -613,7 +621,7 @@ namespace PanJanek.SokobanSolver.Sokoban
                 }
 
                 //try walk right
-                if (!visited[p.X + 1, p.Y] && (emtpy.Map[p.X + 1, p.Y] == Constants.EMPTY || emtpy.Map[p.X + 1, p.Y] == Constants.GOAL))
+                if (!visited[p.X + 1, p.Y] && (empty.Map[p.X + 1, p.Y] == Constants.EMPTY || empty.Map[p.X + 1, p.Y] == Constants.GOAL))
                 {
                     stackTop++;
                     stack[stackTop].X = p.X + 1;
@@ -622,7 +630,7 @@ namespace PanJanek.SokobanSolver.Sokoban
                 }
 
                 //try walk up
-                if (!visited[p.X, p.Y - 1] && (emtpy.Map[p.X, p.Y - 1] == Constants.EMPTY || emtpy.Map[p.X, p.Y - 1] == Constants.GOAL))
+                if (!visited[p.X, p.Y - 1] && (empty.Map[p.X, p.Y - 1] == Constants.EMPTY || empty.Map[p.X, p.Y - 1] == Constants.GOAL))
                 {
                     stackTop++;
                     stack[stackTop].X = p.X;
@@ -631,7 +639,7 @@ namespace PanJanek.SokobanSolver.Sokoban
                 }
 
                 //try walk down
-                if (!visited[p.X, p.Y + 1] && (emtpy.Map[p.X, p.Y + 1] == Constants.EMPTY || emtpy.Map[p.X, p.Y + 1] == Constants.GOAL))
+                if (!visited[p.X, p.Y + 1] && (empty.Map[p.X, p.Y + 1] == Constants.EMPTY || empty.Map[p.X, p.Y + 1] == Constants.GOAL))
                 {
                     stackTop++;
                     stack[stackTop].X = p.X;
@@ -749,7 +757,11 @@ namespace PanJanek.SokobanSolver.Sokoban
             clone.Map = new byte[this.Width, this.Height];
             Array.Copy(this.Map, clone.Map, this.Map.Length);
             clone.Player = this.Player;
-            clone.StonesCount = this.StonesCount;
+            clone.Goals = this.Goals;
+            clone.Stones = new PointXY[this.Stones.Length];
+            Array.Copy(this.Stones, clone.Stones, this.Stones.Length);
+            clone.StonesMap = new byte[this.Width, this.Height];
+            Array.Copy(this.StonesMap, clone.StonesMap, this.StonesMap.Length);
             clone.NormalizedPlayer = this.NormalizedPlayer;
             clone.DeadlockMap = this.DeadlockMap;
             if (this.Binary != null)
@@ -808,6 +820,11 @@ namespace PanJanek.SokobanSolver.Sokoban
                     clone.stoneMovedTo.Y = p.Y + 2;
                     break;
             }
+
+            int stoneIdx = clone.StonesMap[clone.stoneMovedFrom.X, clone.stoneMovedFrom.Y];
+            clone.StonesMap[clone.stoneMovedTo.X, clone.stoneMovedTo.Y] = (byte)stoneIdx;
+            clone.StonesMap[clone.stoneMovedFrom.X, clone.stoneMovedFrom.Y] = 0;
+            clone.Stones[stoneIdx - 1] = clone.stoneMovedTo;
 
             clone.NormalizedPlayer.X = 0;
             clone.NormalizedPlayer.Y = 0;
@@ -889,6 +906,11 @@ namespace PanJanek.SokobanSolver.Sokoban
                     clone.stoneMovedTo.Y = p.Y;
                     break;
             }
+
+            int stoneIdx = clone.StonesMap[clone.stoneMovedFrom.X, clone.stoneMovedFrom.Y];
+            clone.StonesMap[clone.stoneMovedTo.X, clone.stoneMovedTo.Y] = (byte)stoneIdx;
+            clone.StonesMap[clone.stoneMovedFrom.X, clone.stoneMovedFrom.Y] = 0;
+            clone.Stones[stoneIdx - 1] = clone.stoneMovedTo;
 
             clone.NormalizedPlayer.X = 0;
             clone.NormalizedPlayer.Y = 0;

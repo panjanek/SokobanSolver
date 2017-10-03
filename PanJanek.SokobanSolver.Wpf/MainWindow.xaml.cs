@@ -208,7 +208,19 @@ namespace PanJanek.SokobanSolver.Wpf
                             canvas.Children.Add(this.CreateFilledRectangle(sx + 1, sy + 1, dx - 1, dy - 1, transparentRedBrush));
                         }
                     }
+
+                    if (position.StonesMap[x,y] > 0)
+                    {
+                        canvas.Children.Add(this.CreateFilledRectangle(sx + 5, sy + 5, dx - 10, dy - 10, yellowBrush));
+                    }
                 }
+            }
+
+            for (int i = 0; i < position.Stones.Length; i++)
+            {
+                double sx = position.Stones[i].X * dx;
+                double sy = position.Stones[i].Y * dy;
+                canvas.Children.Add(this.CreateFilledRectangle(sx + 7, sy + 7, dx - 14, dy - 14, blueBrush));
             }
         }
 
