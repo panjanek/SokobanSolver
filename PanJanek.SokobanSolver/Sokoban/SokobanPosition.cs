@@ -188,7 +188,7 @@ namespace PanJanek.SokobanSolver.Sokoban
                 int distancesSum = 0;
                 for (int s = 0; s < this.Stones.Length; s++)
                 {
-                    for (int g = 0; g < this.Stones.Length; g++)
+                    for (int g = 0; g < this.Goals.Length; g++)
                     {
                         int dx = this.Stones[s].X - this.Goals[g].X;
                         int dy = this.Stones[s].Y - this.Goals[g].Y;
@@ -203,6 +203,7 @@ namespace PanJanek.SokobanSolver.Sokoban
                             dy = dy * -1;
                         }
 
+                        //distancesSum += (int)Math.Sqrt(dx*dx + dy*dy);
                         distancesSum += dx + dy;
                     }
                 }
