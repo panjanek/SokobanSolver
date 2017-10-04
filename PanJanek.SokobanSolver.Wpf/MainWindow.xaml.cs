@@ -25,7 +25,7 @@ namespace PanJanek.SokobanSolver.Wpf
     /// </summary>
     public partial class MainWindow : Window
     {
-        private const string defaultLevel = ".\\..\\..\\..\\levels\\sokoban2.txt";
+        private const string defaultLevel = ".\\..\\..\\..\\levels\\sokoban3.txt";
 
         private static readonly SolidColorBrush whiteBrush = new SolidColorBrush(Colors.White);
 

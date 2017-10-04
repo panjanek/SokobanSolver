@@ -185,7 +185,8 @@ namespace PanJanek.SokobanSolver.Sokoban
                     }
                 }
 
-                int distancesSum = 0;
+                //int distancesSum = 0;
+                double[,] distanceMatrix = new double[this.Stones.Length, this.Stones.Length];
                 for (int s = 0; s < this.Stones.Length; s++)
                 {
                     for (int g = 0; g < this.Goals.Length; g++)
@@ -204,8 +205,21 @@ namespace PanJanek.SokobanSolver.Sokoban
                         }
 
                         //distancesSum += (int)Math.Sqrt(dx*dx + dy*dy);
-                        distancesSum += dx + dy;
+                        //distancesSum += dx + dy;
+                        distanceMatrix[s, g] = dx + dy;
                     }
+                }
+
+                var h = new HungarianAlgorithm(this.Stones.Length);
+                double[,] distanceMatrixCopy = new double[this.Stones.Length, this.Stones.Length];
+                Array.Copy(distanceMatrix, distanceMatrixCopy, distanceMatrix.Length);
+                var res = h.execute(distanceMatrixCopy);
+                double distanceSum = 0;
+                for (int k = 0; k < res.Length; k++)
+                {
+                    int goalCol = res[k];
+                    if (goalCol > -1)
+                        distanceSum += distanceMatrix[k,goalCol];
                 }
 
                 if (stonesNotOnGoal == 0)
@@ -214,7 +228,9 @@ namespace PanJanek.SokobanSolver.Sokoban
                 }
                 else
                 {
-                    this.CachedHeuristics = stonesNotOnGoal * 1000;
+                    this.CachedHeuristics = (int)distanceSum * 5;
+                    //this.CachedHeuristics = stonesNotOnGoal * 1000 + (int)distanceSum * 6;
+                    //this.CachedHeuristics = stonesNotOnGoal * 1000;
                         
                     //this.CachedHeuristics = 3 * (distancesSum / (this.StonesCount * this.StonesCount) + 
                     //                             stonesNotOnGoal * (this.StonesCount * this.StonesCount));

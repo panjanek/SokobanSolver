@@ -46,6 +46,7 @@
     <Compile Include="Sokoban\Constants.cs" />
     <Compile Include="Engine\IGamePosition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sokoban\HungarianAlgorithm.cs" />
     <Compile Include="Sokoban\SokobanPosition.cs" />
     <Compile Include="Engine\Solver.cs" />
     <Compile Include="Sokoban\SokobanUtil.cs" />
