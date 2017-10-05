@@ -68,6 +68,16 @@ public class HungarianAlgorithm {
 	 *         corresponding worker is unassigned.
 	 */
 	public int[] execute(double[,] costMatrix) {
+        
+        matchJobByWorker.Fill(-1);
+        matchWorkerByJob.Fill(-1);
+        Array.Clear(labelByWorker,0,labelByWorker.Length);
+        Array.Clear(labelByJob, 0, labelByJob.Length);
+        Array.Clear(minSlackWorkerByJob, 0, minSlackWorkerByJob.Length);
+        Array.Clear(minSlackValueByJob, 0, minSlackValueByJob.Length);
+        Array.Clear(committedWorkers, 0, committedWorkers.Length);
+        Array.Clear(parentWorkerByCommittedJob, 0, parentWorkerByCommittedJob.Length);
+
 		/*
 		 * Heuristics to improve performance: Reduce rows and columns by their
 		 * smallest element, compute an initial non-zero dual feasible solution

@@ -16,6 +16,12 @@ namespace PanJanek.SokobanSolver.Sokoban
 
         private static bool[,] VisitedMap = new bool[Constants.InternalMapMaxWidth, Constants.InternalMapMaxHeight];
 
+        private static double[,] distanceMatrix = null;
+
+        private static double[,] distanceMatrixCopy = null;
+
+        private static HungarianAlgorithm hungarian = null;
+
         public byte[,] StonesMap;
 
         public PointXY[] Stones;
@@ -105,6 +111,9 @@ namespace PanJanek.SokobanSolver.Sokoban
 
             position.Goals = goals.ToArray();
             position.Stones = stones.ToArray();
+            distanceMatrix = new double[position.Stones.Length, position.Stones.Length];
+            distanceMatrixCopy = new double[position.Stones.Length, position.Stones.Length];
+            hungarian = new HungarianAlgorithm(position.Stones.Length);
             return position;
         }
 
@@ -185,8 +194,6 @@ namespace PanJanek.SokobanSolver.Sokoban
                     }
                 }
 
-                //int distancesSum = 0;
-                double[,] distanceMatrix = new double[this.Stones.Length, this.Stones.Length];
                 for (int s = 0; s < this.Stones.Length; s++)
                 {
                     for (int g = 0; g < this.Goals.Length; g++)
@@ -204,16 +211,13 @@ namespace PanJanek.SokobanSolver.Sokoban
                             dy = dy * -1;
                         }
 
-                        //distancesSum += (int)Math.Sqrt(dx*dx + dy*dy);
-                        //distancesSum += dx + dy;
                         distanceMatrix[s, g] = dx + dy;
                     }
                 }
 
-                var h = new HungarianAlgorithm(this.Stones.Length);
-                double[,] distanceMatrixCopy = new double[this.Stones.Length, this.Stones.Length];
+                //var h = new HungarianAlgorithm(this.Stones.Length);
                 Array.Copy(distanceMatrix, distanceMatrixCopy, distanceMatrix.Length);
-                var res = h.execute(distanceMatrixCopy);
+                var res = hungarian.execute(distanceMatrixCopy);
                 double distanceSum = 0;
                 for (int k = 0; k < res.Length; k++)
                 {
