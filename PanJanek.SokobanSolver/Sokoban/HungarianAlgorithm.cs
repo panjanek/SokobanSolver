@@ -7,11 +7,11 @@
  */
 using System;
 public class HungarianAlgorithm {
-	private double[,] costMatrix;
+	private int[,] costMatrix;
 	private int rows, cols, dim;
-	private double[] labelByWorker, labelByJob;
+	private int[] labelByWorker, labelByJob;
 	private int[] minSlackWorkerByJob;
-	private double[] minSlackValueByJob;
+	private int[] minSlackValueByJob;
 	private int[] matchJobByWorker, matchWorkerByJob;
 	private int[] parentWorkerByCommittedJob;
 	private bool[] committedWorkers;
@@ -29,11 +29,11 @@ public class HungarianAlgorithm {
 		this.dim = Math.Max(matrixSize, matrixSize);
 		this.rows = matrixSize;
 		this.cols = matrixSize;
-		this.costMatrix = new double[this.dim,this.dim];
-		labelByWorker = new double[this.dim];
-		labelByJob = new double[this.dim];
+		this.costMatrix = new int[this.dim,this.dim];
+		labelByWorker = new int[this.dim];
+		labelByJob = new int[this.dim];
 		minSlackWorkerByJob = new int[this.dim];
-		minSlackValueByJob = new double[this.dim];
+		minSlackValueByJob = new int[this.dim];
 		committedWorkers = new bool[this.dim];
 		parentWorkerByCommittedJob = new int[this.dim];
 		matchJobByWorker = new int[this.dim];
@@ -49,7 +49,7 @@ public class HungarianAlgorithm {
 	 */
 	protected void computeInitialFeasibleSolution() {
 		for (int j = 0; j < dim; j++) {
-			labelByJob[j] = Double.PositiveInfinity;
+			labelByJob[j] = int.MaxValue;
 		}
 		for (int w = 0; w < dim; w++) {
 			for (int j = 0; j < dim; j++) {
@@ -67,7 +67,7 @@ public class HungarianAlgorithm {
 	 *         provided cost matrix. A matching value of -1 indicates that the
 	 *         corresponding worker is unassigned.
 	 */
-	public int[] execute(double[,] costMatrix) {
+	public int[] execute(int[,] costMatrix) {
         
         matchJobByWorker.Fill(-1);
         matchWorkerByJob.Fill(-1);
@@ -126,7 +126,7 @@ public class HungarianAlgorithm {
 	protected void executePhase() {
 		while (true) {
 			int minSlackWorker = -1, minSlackJob = -1;
-			double minSlackValue = Double.PositiveInfinity;
+            int minSlackValue = int.MaxValue;
 			for (int j = 0; j < dim; j++) {
 				if (parentWorkerByCommittedJob[j] == -1) {
 					if (minSlackValueByJob[j] < minSlackValue) {
@@ -165,7 +165,7 @@ public class HungarianAlgorithm {
 				committedWorkers[worker] = true;
 				for (int j = 0; j < dim; j++) {
 					if (parentWorkerByCommittedJob[j] == -1) {
-						double slack = costMatrix[worker,j]
+						int slack = costMatrix[worker,j]
 								- labelByWorker[worker] - labelByJob[j];
 						if (minSlackValueByJob[j] > slack) {
 							minSlackValueByJob[j] = slack;
@@ -242,7 +242,7 @@ public class HungarianAlgorithm {
 	 */
 	protected void reduce() {
 		for (int w = 0; w < dim; w++) {
-			double min1 = Double.PositiveInfinity;
+            int min1 = int.MaxValue;
 			for (int j = 0; j < dim; j++) {
 				if (costMatrix[w,j] < min1) {
 					min1 = costMatrix[w,j];
@@ -252,9 +252,9 @@ public class HungarianAlgorithm {
 				costMatrix[w,j] -= min1;
 			}
 		}
-		double[] min = new double[dim];
+		int[] min = new int[dim];
 		for (int j = 0; j < dim; j++) {
-			min[j] = Double.PositiveInfinity;
+            min[j] = int.MaxValue;
 		}
 		for (int w = 0; w < dim; w++) {
 			for (int j = 0; j < dim; j++) {
@@ -275,7 +275,7 @@ public class HungarianAlgorithm {
 	 * committed workers and by subtracting the slack value for committed jobs.
 	 * In addition, update the minimum slack values appropriately.
 	 */
-	protected void updateLabeling(double slack) {
+	protected void updateLabeling(int slack) {
 		for (int w = 0; w < dim; w++) {
 			if (committedWorkers[w]) {
 				labelByWorker[w] += slack;

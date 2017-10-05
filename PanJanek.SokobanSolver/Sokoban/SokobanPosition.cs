@@ -16,9 +16,9 @@ namespace PanJanek.SokobanSolver.Sokoban
 
         private static bool[,] VisitedMap = new bool[Constants.InternalMapMaxWidth, Constants.InternalMapMaxHeight];
 
-        private static double[,] distanceMatrix = null;
+        private static int[,] distanceMatrix = null;
 
-        private static double[,] distanceMatrixCopy = null;
+        private static int[,] distanceMatrixCopy = null;
 
         private static HungarianAlgorithm hungarian = null;
 
@@ -111,8 +111,8 @@ namespace PanJanek.SokobanSolver.Sokoban
 
             position.Goals = goals.ToArray();
             position.Stones = stones.ToArray();
-            distanceMatrix = new double[position.Stones.Length, position.Stones.Length];
-            distanceMatrixCopy = new double[position.Stones.Length, position.Stones.Length];
+            distanceMatrix = new int[position.Stones.Length, position.Stones.Length];
+            distanceMatrixCopy = new int[position.Stones.Length, position.Stones.Length];
             hungarian = new HungarianAlgorithm(position.Stones.Length);
             return position;
         }
@@ -215,7 +215,6 @@ namespace PanJanek.SokobanSolver.Sokoban
                     }
                 }
 
-                //var h = new HungarianAlgorithm(this.Stones.Length);
                 Array.Copy(distanceMatrix, distanceMatrixCopy, distanceMatrix.Length);
                 var res = hungarian.execute(distanceMatrixCopy);
                 double distanceSum = 0;
