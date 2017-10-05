@@ -339,13 +339,11 @@ namespace PanJanek.SokobanSolver.Sokoban
             bool changed = false;
             if (this.Binary == null)
             {
-                //this.Binary = new byte[2 + this.Width * this.Height];
                 this.Binary = new byte[2 + this.Width * this.Height / 8 + 1];
                 for (int x = 0; x < this.Width; x++)
                 {
                     for (int y = 0; y < this.Height; y++)
                     {
-                        //this.Binary[2 + y * this.Width + x] = (byte)((this.Map[x, y] == Constants.STONE || this.Map[x, y] == Constants.GOALSTONE) ? 1 : 0);
                         this.SetBinaryBit(x, y, (byte)((this.Map[x, y] == Constants.STONE || this.Map[x, y] == Constants.GOALSTONE) ? 1 : 0));
                     }
                 }
