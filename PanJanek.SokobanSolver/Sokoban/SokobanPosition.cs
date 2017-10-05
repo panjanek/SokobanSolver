@@ -680,93 +680,6 @@ namespace PanJanek.SokobanSolver.Sokoban
             }
         }
 
-        /*
-        public string GetUniqueId()
-        {
-            if (string.IsNullOrWhiteSpace(this.CachedUniqueId))
-            {
-                Array.Clear(VisitedMap, 0, VisitedMap.Length);
-                Stack[0] = this.Player;
-                VisitedMap[this.Player.X, this.Player.Y] = true;
-                int stackTop = 0;
-                PointXY p;
-                PointXY normalized;
-                normalized.X = this.Width;
-                normalized.Y = this.Height;
-                while (stackTop >= 0)
-                {
-                    p = Stack[stackTop];
-                    stackTop--;
-                    if (p.Y < normalized.Y)
-                    {
-                        normalized = p;
-                    }
-
-                    if (p.Y == normalized.Y && p.X < normalized.X)
-                    {
-                        normalized = p;
-                    }
-
-                    //try walk left
-                    if (!VisitedMap[p.X - 1, p.Y] && (this.Map[p.X - 1, p.Y] == Constants.EMPTY || this.Map[p.X - 1, p.Y] == Constants.GOAL))
-                    {
-                        stackTop++;
-                        Stack[stackTop].X = p.X - 1;
-                        Stack[stackTop].Y = p.Y;
-                        VisitedMap[p.X - 1, p.Y] = true;
-                    }
-
-                    //try walk right
-                    if (!VisitedMap[p.X + 1, p.Y] && (this.Map[p.X + 1, p.Y] == Constants.EMPTY || this.Map[p.X + 1, p.Y] == Constants.GOAL))
-                    {
-                        stackTop++;
-                        Stack[stackTop].X = p.X + 1;
-                        Stack[stackTop].Y = p.Y;
-                        VisitedMap[p.X + 1, p.Y] = true;
-                    }
-
-                    //try walk up
-                    if (!VisitedMap[p.X, p.Y - 1] && (this.Map[p.X, p.Y - 1] == Constants.EMPTY || this.Map[p.X, p.Y - 1] == Constants.GOAL))
-                    {
-                        stackTop++;
-                        Stack[stackTop].X = p.X;
-                        Stack[stackTop].Y = p.Y - 1;
-                        VisitedMap[p.X, p.Y - 1] = true;
-                    }
-
-                    //try walk down
-                    if (!VisitedMap[p.X, p.Y + 1] && (this.Map[p.X, p.Y + 1] == Constants.EMPTY || this.Map[p.X, p.Y + 1] == Constants.GOAL))
-                    {
-                        stackTop++;
-                        Stack[stackTop].X = p.X;
-                        Stack[stackTop].Y = p.Y + 1;
-                        VisitedMap[p.X, p.Y + 1] = true;
-                    }
-                }
-
-                byte[] packed = new byte[2 + StonesCount * 2];
-                packed[0] = (byte)normalized.X;
-                packed[1] = (byte)normalized.Y;
-                int i = 0;
-                for(int x=0; x<this.Width; x++)
-                {
-                    for(int y=0;y<this.Height; y++)
-                    {
-                        if (this.Map[x, y] == Constants.STONE || this.Map[x, y] == Constants.GOALSTONE)
-                        {
-                            packed[2 + i * 2] = (byte)x;
-                            packed[2 + i * 2 + 1] = (byte)y;
-                            i++;
-                        }
-                    }
-                }
-
-                this.CachedUniqueId = Convert.ToBase64String(packed);
-            }
-
-            return this.CachedUniqueId;
-        }*/
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SokobanPosition Clone()
         {
@@ -850,26 +763,21 @@ namespace PanJanek.SokobanSolver.Sokoban
             clone.NormalizedPlayer.Y = 0;
             if (this.Binary != null)
             {
-                //clone.Binary[2 + py * this.Width + px] = 0;
                 switch (direction)
                 {
                     case Direction.Left:
-                        //clone.Binary[2 + py * this.Width + px - 1] = 1;
                         clone.SetBinaryBit(p.X - 1, p.Y, 0);
                         clone.SetBinaryBit(p.X - 2, p.Y, 1);
                         break;
                     case Direction.Right:
-                        //clone.Binary[2 + py * this.Width + px + 1] = 1;
                         clone.SetBinaryBit(p.X + 1, p.Y, 0);
                         clone.SetBinaryBit(p.X + 2, p.Y, 1);
                         break;
                     case Direction.Up:
-                        //clone.Binary[2 + (py - 1) * this.Width + px] = 1;
                         clone.SetBinaryBit(p.X, p.Y - 1, 0);
                         clone.SetBinaryBit(p.X, p.Y - 2, 1);
                         break;
                     case Direction.Down:
-                        //clone.Binary[2 + (py + 1) * this.Width + px] = 1;
                         clone.SetBinaryBit(p.X, p.Y + 1, 0);
                         clone.SetBinaryBit(p.X, p.Y + 2, 1);
                         break;
