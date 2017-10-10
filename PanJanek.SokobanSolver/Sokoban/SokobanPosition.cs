@@ -121,79 +121,6 @@ namespace PanJanek.SokobanSolver.Sokoban
         {
             if (!this.CachedHeuristics.HasValue)
             {
-                int stonesNotOnGoal = 0;
-                for (int x = 0; x < this.Width - 1; x++)
-                {
-                    for (int y = 0; y < this.Height - 1; y++)
-                    {
-                        int d_stonesOnGoals = 0;
-                        int d_stones = 0;
-                        int d_walls = 0;
-
-                        switch (this.Map[x, y])
-                        {
-                            case Constants.STONE:
-                                stonesNotOnGoal++;
-                                d_stones++;
-                                break;
-                            case Constants.GOALSTONE:
-                                d_stonesOnGoals++;
-                                 break;
-                            case Constants.WALL:
-                                d_walls++;
-                                 break;
-                        }
-
-                        //2x2 deadlock detection
-                        if (d_stonesOnGoals==1 || d_stones==1 || d_walls==1)
-                        {
-                            switch (this.Map[x + 1, y])
-                            {
-                                case Constants.STONE:
-                                    d_stones++;
-                                    break;
-                                case Constants.GOALSTONE:
-                                    d_stonesOnGoals++;
-                                     break;
-                                case Constants.WALL:
-                                    d_walls++;
-                                     break;
-                            }
-
-                            switch (this.Map[x, y + 1])
-                            {
-                                case Constants.STONE:
-                                    d_stones++;
-                                    break;
-                                case Constants.GOALSTONE:
-                                    d_stonesOnGoals++;
-                                    break;
-                                case Constants.WALL:
-                                    d_walls++;
-                                    break;
-                            }
-
-                            switch (this.Map[x + 1, y + 1])
-                            {
-                                case Constants.STONE:
-                                    d_stones++;
-                                    break;
-                                case Constants.GOALSTONE:
-                                    d_stonesOnGoals++;
-                                    break;
-                                case Constants.WALL:
-                                    d_walls++;
-                                    break;
-                            }
-
-                            if (d_stones > 0 && (d_stones + d_stonesOnGoals + d_walls == 4))
-                            {
-                                return int.MaxValue;
-                            }
-                        }
-                    }
-                }
-
                 for (int s = 0; s < this.Stones.Length; s++)
                 {
                     for (int g = 0; g < this.Goals.Length; g++)
@@ -225,19 +152,7 @@ namespace PanJanek.SokobanSolver.Sokoban
                         distanceSum += distanceMatrix[k,goalCol];
                 }
 
-                if (stonesNotOnGoal == 0)
-                {
-                    this.CachedHeuristics = 0;
-                }
-                else
-                {
-                    this.CachedHeuristics = (int)distanceSum * 5;
-                    //this.CachedHeuristics = stonesNotOnGoal * 1000 + (int)distanceSum * 6;
-                    //this.CachedHeuristics = stonesNotOnGoal * 1000;
-                        
-                    //this.CachedHeuristics = 3 * (distancesSum / (this.StonesCount * this.StonesCount) + 
-                    //                             stonesNotOnGoal * (this.StonesCount * this.StonesCount));
-                }
+                this.CachedHeuristics = (int)distanceSum * 5;
             }
 
             return this.CachedHeuristics.Value;
@@ -273,25 +188,41 @@ namespace PanJanek.SokobanSolver.Sokoban
                 //try push left
                 if ((this.Map[p.X - 1, p.Y] == Constants.STONE || this.Map[p.X - 1, p.Y] == Constants.GOALSTONE) && (this.Map[p.X - 2, p.Y] == Constants.EMPTY || this.Map[p.X - 2, p.Y] == Constants.GOAL) && !this.DeadlockMap[p.X-2, p.Y])
                 {
-                    result.Add(this.ClonePush(p, Direction.Left));
+                    var next = this.ClonePush(p, Direction.Left);
+                    if (next.CheckDeadlockPattern(p.X-2, p.Y))
+                    {
+                        result.Add(next);
+                    }
                 }
 
                 //try push right
                 if ((this.Map[p.X + 1, p.Y] == Constants.STONE || this.Map[p.X + 1, p.Y] == Constants.GOALSTONE) && (this.Map[p.X + 2, p.Y] == Constants.EMPTY || this.Map[p.X + 2, p.Y] == Constants.GOAL) && !this.DeadlockMap[p.X + 2, p.Y])
                 {
-                    result.Add(this.ClonePush(p, Direction.Right));
+                    var next = this.ClonePush(p, Direction.Right);
+                    if (next.CheckDeadlockPattern(p.X + 2, p.Y))
+                    {
+                        result.Add(next);
+                    }
                 }
 
                 //try push up
                 if ((this.Map[p.X, p.Y - 1] == Constants.STONE || this.Map[p.X, p.Y - 1] == Constants.GOALSTONE) && (this.Map[p.X, p.Y - 2] == Constants.EMPTY || this.Map[p.X, p.Y - 2] == Constants.GOAL) && !this.DeadlockMap[p.X, p.Y - 2])
                 {
-                    result.Add(this.ClonePush(p, Direction.Up));
+                    var next = this.ClonePush(p, Direction.Up);
+                    if (next.CheckDeadlockPattern(p.X, p.Y - 2))
+                    {
+                        result.Add(next);
+                    }
                 }
 
                 //try push down
                 if ((this.Map[p.X, p.Y + 1] == Constants.STONE || this.Map[p.X, p.Y + 1] == Constants.GOALSTONE) && (this.Map[p.X, p.Y + 2] == Constants.EMPTY || this.Map[p.X, p.Y + 2] == Constants.GOAL) && !this.DeadlockMap[p.X, p.Y + 2])
                 {
-                    result.Add(this.ClonePush(p, Direction.Down));
+                    var next = this.ClonePush(p, Direction.Down);
+                    if (next.CheckDeadlockPattern(p.X, p.Y + 2))
+                    {
+                        result.Add(next);
+                    }
                 }
 
                 //try walk left
@@ -332,6 +263,88 @@ namespace PanJanek.SokobanSolver.Sokoban
             }
 
             return result;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool CheckDeadlockPattern(int px, int py)
+        {
+            int x1 = Math.Max(0, px - 1);
+            int y1 = Math.Max(0, py - 1);
+            int x2 = Math.Min(this.Width - 2, px);
+            int y2 = Math.Min(this.Height - 2, py);
+
+            //2x2 deadlock detection
+            for (int x = x1; x <= x2; x++)
+            {
+                for (int y = y1; y <= y2; y++)
+                {
+                    int d_stonesOnGoals = 0;
+                    int d_stones = 0;
+                    int d_walls = 0;
+
+                    switch (this.Map[x, y])
+                    {
+                        case Constants.STONE:
+                            d_stones++;
+                            break;
+                        case Constants.GOALSTONE:
+                            d_stonesOnGoals++;
+                            break;
+                        case Constants.WALL:
+                            d_walls++;
+                            break;
+                    }
+
+                    if (d_stonesOnGoals == 1 || d_stones == 1 || d_walls == 1)
+                    {
+                        switch (this.Map[x + 1, y])
+                        {
+                            case Constants.STONE:
+                                d_stones++;
+                                break;
+                            case Constants.GOALSTONE:
+                                d_stonesOnGoals++;
+                                break;
+                            case Constants.WALL:
+                                d_walls++;
+                                break;
+                        }
+
+                        switch (this.Map[x, y + 1])
+                        {
+                            case Constants.STONE:
+                                d_stones++;
+                                break;
+                            case Constants.GOALSTONE:
+                                d_stonesOnGoals++;
+                                break;
+                            case Constants.WALL:
+                                d_walls++;
+                                break;
+                        }
+
+                        switch (this.Map[x + 1, y + 1])
+                        {
+                            case Constants.STONE:
+                                d_stones++;
+                                break;
+                            case Constants.GOALSTONE:
+                                d_stonesOnGoals++;
+                                break;
+                            case Constants.WALL:
+                                d_walls++;
+                                break;
+                        }
+
+                        if (d_stones > 0 && (d_stones + d_stonesOnGoals + d_walls == 4))
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            return true;
         }
 
         public string GetUniqueId()
