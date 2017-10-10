@@ -144,7 +144,7 @@ namespace PanJanek.SokobanSolver.Sokoban
 
                 Array.Copy(distanceMatrix, distanceMatrixCopy, distanceMatrix.Length);
                 var res = hungarian.execute(distanceMatrixCopy);
-                double distanceSum = 0;
+                int distanceSum = 0;
                 for (int k = 0; k < res.Length; k++)
                 {
                     int goalCol = res[k];
@@ -152,7 +152,17 @@ namespace PanJanek.SokobanSolver.Sokoban
                         distanceSum += distanceMatrix[k,goalCol];
                 }
 
-                this.CachedHeuristics = (int)distanceSum * 5;
+                if (distanceSum == 0)
+                {
+                    CachedHeuristics = 0;
+                }
+                else
+                {
+                    //var parent = (SokobanPosition)this.Parent;
+                    //bool sameStoneMoved = parent != null && parent.stoneMovedTo.X == this.stoneMovedFrom.X && parent.stoneMovedTo.Y == this.stoneMovedFrom.Y;
+
+                    this.CachedHeuristics = distanceSum * 5;
+                }
             }
 
             return this.CachedHeuristics.Value;
@@ -163,8 +173,6 @@ namespace PanJanek.SokobanSolver.Sokoban
             //prefer pushing the same stone in next move
             SokobanPosition position = (SokobanPosition)other;
             return (this.stoneMovedTo.X == position.stoneMovedFrom.X && this.stoneMovedTo.Y == position.stoneMovedFrom.Y) ? 1 : 10;
-            //return ((Math.Abs(this.Player.X - position.Player.X) == 1 && (this.Player.Y == position.Player.Y)) ||
-            //        (Math.Abs(this.Player.Y - position.Player.Y) == 1 && (this.Player.X == position.Player.X))) ? 1 : 2;
         }
 
         public List<IGamePosition> GetSuccessors()
